@@ -1,0 +1,29 @@
+# more than one preference
+university	u1
+university_grade	u1	3
+
+minor	m1
+minor_msc	m1	1
+minor_req	m1	r1
+minor	m2
+minor_msc	m2	1
+minor_req	m2	r1
+minor	m3
+minor_msc	m3	1
+minor_req	m3	r1
+
+student	A
+student_bsc	A	r1
+student_bscgpa	A	17
+student_bscuni	A	u1
+student_pref	A	m1
+student_pref	A	m3
+student_pref	A	m2
+
+student	B
+student_bsc	B	r1
+student_bscgpa	B	18
+student_bscuni	B	u1
+student_pref	B	m1
+student_pref	B	m2
+student_pref	B	m3

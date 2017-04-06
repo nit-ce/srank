@@ -1,0 +1,18 @@
+# unmet requirements
+university	u1
+university_grade	u1	3
+
+minor	m1
+minor_msc	m1	1
+minor_req	m1	r1
+minor	m2
+minor_msc	m2	1
+minor_req	m1	r1
+minor_req	m2	r2
+
+student	A
+student_bsc	A	r2
+student_bscgpa	A	17
+student_bscuni	A	u1
+student_pref	A	m1
+student_pref	A	m2
