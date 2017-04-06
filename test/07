@@ -1,0 +1,21 @@
+# testing enrol command
+university	u1
+university_grade	u1	3
+
+minor	m1
+minor_msc	m1	1
+minor_req	m1	r1
+
+student	A
+student_bsc	A	r1
+student_bscuni	A	u1
+student_bscgpa	A	16
+student_pref	A	m1
+
+student	B
+student_bsc	B	r1
+student_bscuni	B	u1
+student_bscgpa	B	19.91
+student_pref	B	m1
+
+enrol	A	m1
