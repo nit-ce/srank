@@ -9,14 +9,14 @@
 #define NLEN	512		/* name length */
 #define MLEN	512		/* major/minor name length */
 #define RCNT	32		/* number of required majors */
-#define PCNT	3		/* number of students preferences */
+#define PCNT	3		/* number of student preferences */
 #define UDEF	100		/* default university score */
 
 #define LEN(a)		(sizeof(a) / sizeof((a)[0]))
 
 struct univ {
 	char name[NLEN];	/* university name */
-	int grade;		/* university grade (0-4) */
+	int grade;		/* university grade (0-400) */
 };
 struct minor {
 	char name[NLEN];	/* minor name */
@@ -30,7 +30,7 @@ struct minor {
 struct stud {
 	char name[NLEN];	/* student name */
 	int bsc;		/* BSc major name */
-	int bscgpa;		/* BSc GPA */
+	int bscgpa;		/* BSc GPA (0-2000) */
 	int bscuni;		/* BSc university */
 	int prefs[PCNT];	/* student preferences */
 	int prefs_cnt;		/* number of items in prefs[] */
@@ -205,7 +205,7 @@ static void srank_enrol(char *sname, char *mname)
 		warn("unknown student <%s>", sname);
 }
 
-/* read the input commands */
+/* read input commands */
 static void srank_input(void)
 {
 	char *cols[64];
@@ -336,7 +336,7 @@ static void srank_rank(void)
 			for (k = 0; k < mi->reqs_cnt; k++)
 				if (mi->reqs[k] == st->bsc)
 					break;
-			if (k == mi->reqs_cnt) {		/* unmet requirement */
+			if (k == mi->reqs_cnt) {	/* unmet requirement */
 				warn("unmet requirement %s:%s", st->name, mi->name);
 				continue;
 			}
