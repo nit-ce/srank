@@ -214,7 +214,7 @@ static void srank_input(FILE *fp)
 	while ((ncols = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		char *cmd = cols[0];
 		if (!cmd || !cmd[0] || cmd[0] == '#') {
-			continue;
+			/* this is a comment; nothing to do */
 		} else if (!strcmp("student", cmd) && cols[1]) {
 			if (sidx_uget(studs, cols[1]) < 0)
 				stud_register(cols[1]);
