@@ -154,9 +154,9 @@ static struct minor *minor_find(char *name)
 }
 
 /* read a line and split it at tab characters */
-static int onemoreline(char **cols, int sz)
+static int onemoreline(FILE *fp, char **cols, int sz)
 {
-	int c = fgetc(stdin);
+	int c = fgetc(fp);
 	int ncols = 0;
 	struct sbuf *sb;
 	if (c == EOF)
@@ -171,7 +171,7 @@ static int onemoreline(char **cols, int sz)
 			cols[ncols++] = sbuf_done(sb);
 			sb = sbuf_make();
 		}
-		c = fgetc(stdin);
+		c = fgetc(fp);
 	}
 	cols[ncols++] = sbuf_done(sb);
 	lineno++;
@@ -206,12 +206,12 @@ static void srank_enrol(char *sname, char *mname)
 }
 
 /* read input commands */
-static void srank_input(void)
+static void srank_input(FILE *fp)
 {
 	char *cols[64];
 	int ncols;
 	int i;
-	while ((ncols = onemoreline(cols, LEN(cols))) >= 0) {
+	while ((ncols = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		char *cmd = cols[0];
 		if (!cmd || !cmd[0] || cmd[0] == '#') {
 			continue;
@@ -350,15 +350,25 @@ static void srank_rank(void)
 }
 
 /* print student admissions */
-static void srank_print(void)
+static void srank_print(FILE *fp)
 {
 	int i;
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
 		if (st->mapped >= 0) {
 			struct minor *mi = sidx_datget(minors, st->mapped);
-			printf("%s\t%s\n", st->name, mi->name);
+			fprintf(fp, "%s\t%s\n", st->name, mi->name);
 		}
+	}
+}
+
+/* print student grades */
+static void srank_printgrades(FILE *fp)
+{
+	int i;
+	for (i = 0; i < sidx_len(studs); i++) {
+		struct stud *st = sidx_datget(studs, i);
+		fprintf(fp, "%s\t%d.%02d\n", st->name, st->score / 100, st->score % 100);
 	}
 }
 
@@ -370,16 +380,47 @@ static void sidx_done(struct sidx *sidx)
 	sidx_free(sidx);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+	FILE *ifp = NULL;
+	FILE *ofp = NULL;
+	int grades = 0;
+	int i;
+	for (i = 1; i < argc && argv[i][0] == '-'; i++) {
+		switch (argv[i][1]) {
+		case 'i':
+			ifp = fopen(argv[i][2] ? argv[i] + 2 : argv[++i], "r");
+			break;
+		case 'o':
+			ofp = fopen(argv[i][2] ? argv[i] + 2 : argv[++i], "w");
+			break;
+		case 'g':
+			grades = 1;
+			break;
+		default:
+			printf("Usage: srank options <input >output\n");
+			printf("Options:\n");
+			printf("  -i path \t read from a file instead of standard input\n");
+			printf("  -o path \t write to a file instead of standard output\n");
+			printf("  -g      \t only print student grades\n");
+			return 1;
+		}
+	}
 	univs = sidx_make();
 	minors = sidx_make();
 	studs = sidx_make();
 	bscs = sidx_make();
-	srank_input();
+	srank_input(ifp ? ifp : stdin);
 	srank_scores();
 	srank_rank();
-	srank_print();
+	if (grades)
+		srank_printgrades(ofp ? ofp : stdout);
+	else
+		srank_print(ofp ? ofp : stdout);
+	if (ifp)
+		fclose(ifp);
+	if (ofp)
+		fclose(ofp);
 	sidx_done(univs);
 	sidx_done(minors);
 	sidx_done(studs);
