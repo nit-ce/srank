@@ -398,11 +398,11 @@ int main(int argc, char *argv[])
 			grades = 1;
 			break;
 		default:
-			printf("Usage: srank options <input >output\n");
+			printf("Usage: srank [options] <input >output\n\n");
 			printf("Options:\n");
 			printf("  -i path \t read from a file instead of standard input\n");
 			printf("  -o path \t write to a file instead of standard output\n");
-			printf("  -g      \t only print student grades\n");
+			printf("  -g      \t print student grades only\n");
 			return 1;
 		}
 	}
