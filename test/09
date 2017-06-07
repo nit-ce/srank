@@ -1,0 +1,13 @@
+# requirements may match a prefix
+university	ای
+university_grade	ای	3
+
+minor	يكة
+minor_msc	يكة	1
+minor_req	يكة	یکه
+
+student	A
+student_bsc	A	یکه
+student_bscgpa	A	17
+student_bscuni	A	آی
+student_pref	A	ی‌که

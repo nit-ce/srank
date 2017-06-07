@@ -62,23 +62,78 @@ static int hundredths(char *s)
 	return n * 100 + f;
 }
 
-/* unify the given string; e.g., remove double spaces */
+/* return the length of a utf-8 character */
+int utf8len(char *s)
+{
+	int c = (unsigned char) s[0];
+	if (~c & 0x80)		/* ASCII */
+		return c > 0;
+	if (~c & 0x40)		/* invalid UTF-8 */
+		return 1;
+	if (~c & 0x20)
+		return 2;
+	if (~c & 0x10)
+		return 3;
+	if (~c & 0x08)
+		return 4;
+	return 1;
+}
+
+static char *sunify_map[][2] = {
+	{":", NULL},
+	{"-", NULL},
+	{"_", NULL},
+	{" ", NULL},
+	{"*", NULL},
+	{"؛", NULL},
+	{"،", NULL},
+	{"ء", NULL},
+	{"ـ", NULL},
+	{"‌", NULL},
+	{"‍", NULL},
+	{"ً", NULL},
+	{"ٌ", NULL},
+	{"ٍ", NULL},
+	{"َ", NULL},
+	{"ُ", NULL},
+	{"ِ", NULL},
+	{"ّ", NULL},
+	{"ْ", NULL},
+	{"ٰ", NULL},
+	{"ٔ", NULL},
+	{"ي", "ی"},
+	{"ة", "ه"},
+	{"ك", "ک"},
+	{"آ", "ا"},
+	{"ئ", "ی"},
+	{"أ", "ا"},
+	{"ؤ", "و"},
+};
+
+/* unify the given string; e.g., remove spaces */
 static char *sunify(char *s)
 {
 	struct sbuf *sb;
-	int sp = 1;
+	char c[8];
+	int i;
 	sb = sbuf_make();
 	while (*s) {
-		int c = (unsigned char) *s++;
-		if (c < 128 && ispunct(c))
-			c = ' ';
-		if (c != ' ' || !sp)
-			sbuf_chr(sb, c);
-		sp = c == ' ';
+		int n = utf8len(s);
+		if (n <= 0)
+			break;
+		memcpy(c, s, n);
+		c[n] = '\0';
+		s += n;
+		for (i = 0; i < LEN(sunify_map); i++)
+			if (!strcmp(c, sunify_map[i][0]))
+				break;
+		if (i == LEN(sunify_map)) {
+			sbuf_str(sb, c);
+		} else {
+			if (sunify_map[i][1])
+				sbuf_str(sb, sunify_map[i][1]);
+		}
 	}
-	/* stripping end-of-word spaces */
-	if (sp && sbuf_len(sb) > 0)
-		sbuf_cut(sb, sbuf_len(sb) - 1);
 	return sbuf_done(sb);
 }
 
