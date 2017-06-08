@@ -125,7 +125,7 @@ static char *sunify(char *s)
 		c[n] = '\0';
 		s += n;
 		for (i = 0; i < LEN(sunify_map); i++)
-			if (!strcmp(c, sunify_map[i][0]))
+			if (c[0] == sunify_map[i][0][0] && !strcmp(c, sunify_map[i][0]))
 				break;
 		if (i == LEN(sunify_map)) {
 			sbuf_str(sb, c);
