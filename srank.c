@@ -300,7 +300,8 @@ static void srank_input(FILE *fp)
 				if (pref >= 0)
 					s->prefs[s->prefs_cnt++] = pref;
 				else
-					warn("unknown minor <%s>", cols[2]);
+					warn("unknown minor; student <%s>, minor <%s>",
+						cols[1], cols[2]);
 			}
 			if (!s)
 				warn("unknown student <%s>", cols[1]);
@@ -406,7 +407,8 @@ static void srank_rank(int noreq)
 				}
 			}
 			if (k == mi->reqs_cnt) {	/* unmet requirement */
-				warn("unmet requirement %s:%s", st->name, mi->name);
+				warn("unmet requirement; student <%s>, minor <%s>",
+					st->name, mi->name);
 				continue;
 			}
 			if (mi->msccnt >= mi->mscmax)	/* no room left */
