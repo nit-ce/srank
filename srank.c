@@ -36,6 +36,8 @@ struct stud {
 	int bscgpa;		/* BSc GPA (0-2000) */
 	int bscuni;		/* BSc university identifier */
 	int prefs[PCNT];	/* student preferences */
+	int prefs_rank[PCNT];	/* rank per preference */
+	int prefs_cap[PCNT];	/* capacity per preference */
 	int prefs_cnt;		/* number of items in prefs[] */
 	int score_univ;
 	int score;
@@ -426,11 +428,13 @@ static void srank_rank(int noreq)
 					st->name, mi->name);
 				continue;
 			}
-			if (mi->msccnt >= mi->mscmax)	/* no room left */
-				continue;
 			mi->msccnt++;
-			st->mapped = st->prefs[j];
-			break;
+			st->prefs_rank[j] = mi->msccnt;
+			st->prefs_cap[j] = mi->mscmax;
+			if (mi->msccnt <= mi->mscmax) {	/* accepted */
+				st->mapped = st->prefs[j];
+				break;
+			}
 		}
 	}
 }
@@ -451,7 +455,12 @@ static void srank_print(FILE *fp)
 /* print student grades */
 static void srank_printfull(FILE *fp)
 {
-	int i;
+	int i, j;
+	printf("ID\tFirst Name\tLast Name\tBSc University\tUniversity Score\t"
+		"BSc GPA\tAccepted\t"
+		"Preference 1\tCapacity 1\tRank 1\t"
+		"Preference 2\tCapacity 2\tRank 2\t"
+		"Preference 3\tCapacity 3\tRank 3\n");
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
 		fprintf(fp, "%s", st->name);
@@ -464,6 +473,20 @@ static void srank_printfull(FILE *fp)
 			fprintf(fp, "\t%s", mi->name);
 		} else {
 			fprintf(fp, "\t");
+		}
+		for (j = 0; j < PCNT; j++) {
+			struct minor *mi;
+			if (j < st->prefs_cnt && st->prefs[j] >= 0) {
+				mi = sidx_datget(minors, st->prefs[j]);
+				fprintf(fp, "\t%s", mi->name);
+			} else {
+				fprintf(fp, "\t-");
+			}
+			if (st->prefs_rank[j] > 0) {
+				fprintf(fp, "\t%d\t%d", st->prefs_cap[j], st->prefs_rank[j]);
+			} else {
+				fprintf(fp, "\t-\t-");
+			}
 		}
 		fprintf(fp, "\n");
 	}
