@@ -7,7 +7,7 @@ minor_msc	m1	1
 minor_req	m1	r1
 
 student	A
-student_name	A	A_first	A_last
+student_name	A	A_fname	A_lname
 student_bsc	A	r1
 student_bscgpa	A	17
 student_bscuni	A	u1
