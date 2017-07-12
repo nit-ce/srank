@@ -431,6 +431,7 @@ static void srank_rank(int noreq)
 			}
 		}
 	}
+	free(sorted);
 }
 
 /* print student admissions */
