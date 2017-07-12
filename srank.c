@@ -456,7 +456,7 @@ static void srank_print(FILE *fp)
 static void srank_printfull(FILE *fp)
 {
 	int i, j;
-	printf("ID\tFirst Name\tLast Name\tBSc University\tUniversity Score\t"
+	fprintf(fp, "ID\tFirst Name\tLast Name\tBSc University\tUniversity Score\t"
 		"BSc GPA\tAccepted\t"
 		"Preference 1\tCapacity 1\tRank 1\t"
 		"Preference 2\tCapacity 2\tRank 2\t"
