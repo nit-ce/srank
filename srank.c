@@ -21,9 +21,8 @@ struct univ {
 struct minor {
 	char name[NLEN];	/* minor name */
 	int mscmax;		/* maximum MSc admissions */
-	int phdmax;		/* maximum PhD admissions */
-	int msccnt;
-	int phdcnt;
+	int msccnt;		/* number of accepted students */
+	int msccur;		/* number of students applied for this minor */
 	int reqs[RCNT];		/* required majors */
 	int reqs_cnt;		/* the number of items in reqs[] */
 };
@@ -257,6 +256,7 @@ static void srank_enrol(char *sname, char *mname)
 		if (midx >= 0) {
 			struct minor *mi = sidx_datget(minors, midx);
 			st->mapped = midx;
+			mi->msccur++;
 			mi->msccnt++;
 		} else {
 			warn("unknown minor <%s>", mname);
@@ -343,12 +343,6 @@ static void srank_input(FILE *fp)
 				m->mscmax = atoi(cols[2]);
 			if (!m)
 				warn("unknown minor <%s>", cols[1]);
-		} else if (!strcmp("minor_phd", cmd)) {
-			struct minor *m = minor_find(cols[1]);
-			if (m && cols[2])
-				m->phdmax = atoi(cols[2]);
-			if (!m)
-				warn("unknown minor <%s>", cols[1]);
 		} else if (!strcmp("minor_req", cmd)) {
 			struct minor *m = minor_find(cols[1]);
 			if (m && m->reqs_cnt < RCNT && cols[2])
@@ -428,12 +422,12 @@ static void srank_rank(int noreq)
 					st->name, mi->name);
 				continue;
 			}
-			mi->msccnt++;
-			st->prefs_rank[j] = mi->msccnt;
+			mi->msccur++;
+			st->prefs_rank[j] = mi->msccur;
 			st->prefs_cap[j] = mi->mscmax;
-			if (mi->msccnt <= mi->mscmax) {	/* accepted */
+			if (st->mapped < 0 && mi->msccnt < mi->mscmax) {	/* accepted */
+				mi->msccnt++;
 				st->mapped = st->prefs[j];
-				break;
 			}
 		}
 	}
@@ -456,11 +450,11 @@ static void srank_print(FILE *fp)
 static void srank_printfull(FILE *fp)
 {
 	int i, j;
-	fprintf(fp, "ID\tFirst Name\tLast Name\tBSc University\tUniversity Score\t"
-		"BSc GPA\tAccepted\t"
-		"Preference 1\tCapacity 1\tRank 1\t"
-		"Preference 2\tCapacity 2\tRank 2\t"
-		"Preference 3\tCapacity 3\tRank 3\n");
+	fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
+		"معدل کارشناسی\tرشته‌ی قبولی\t"
+		"اولویت 1\tظرفیت 1\tرتبه 1\t"
+		"اولویت 2\tظرفیت 2\tرتبه 2\t"
+		"اولویت 3\tظرفیت 3\tرتبه 3\n");
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
 		fprintf(fp, "%s", st->name);
