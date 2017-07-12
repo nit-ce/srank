@@ -23,6 +23,7 @@ struct minor {
 	int mscmax;		/* maximum MSc admissions */
 	int msccnt;		/* number of accepted students */
 	int msccur;		/* number of students applied for this minor */
+	int msclast;		/* rank of the the last accepted student */
 	int reqs[RCNT];		/* required majors */
 	int reqs_cnt;		/* the number of items in reqs[] */
 };
@@ -36,7 +37,6 @@ struct stud {
 	int bscuni;		/* BSc university identifier */
 	int prefs[PCNT];	/* student preferences */
 	int prefs_rank[PCNT];	/* rank per preference */
-	int prefs_cap[PCNT];	/* capacity per preference */
 	int prefs_cnt;		/* number of items in prefs[] */
 	int score_univ;
 	int score;
@@ -219,6 +219,7 @@ static int onemoreline(FILE *fp, char **cols, int sz)
 	int c = fgetc(fp);
 	int ncols = 0;
 	struct sbuf *sb;
+	memset(cols, 0, sz * sizeof(cols[0]));
 	if (c == EOF)
 		return -1;
 	sb = sbuf_make();
@@ -424,9 +425,9 @@ static void srank_rank(int noreq)
 			}
 			mi->msccur++;
 			st->prefs_rank[j] = mi->msccur;
-			st->prefs_cap[j] = mi->mscmax;
 			if (st->mapped < 0 && mi->msccnt < mi->mscmax) {	/* accepted */
 				mi->msccnt++;
+				mi->msclast = mi->msccur;
 				st->mapped = st->prefs[j];
 			}
 		}
@@ -453,9 +454,9 @@ static void srank_printfull(FILE *fp)
 	int i, j;
 	fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
 		"معدل کارشناسی\tرشته‌ی قبولی\t"
-		"اولویت 1\tظرفیت 1\tرتبه 1\t"
-		"اولویت 2\tظرفیت 2\tرتبه 2\t"
-		"اولویت 3\tظرفیت 3\tرتبه 3\n");
+		"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
+		"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
+		"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
 		fprintf(fp, "%s", st->name);
@@ -470,17 +471,18 @@ static void srank_printfull(FILE *fp)
 			fprintf(fp, "\t");
 		}
 		for (j = 0; j < PCNT; j++) {
-			struct minor *mi;
+			struct minor *mi = NULL;
 			if (j < st->prefs_cnt && st->prefs[j] >= 0) {
 				mi = sidx_datget(minors, st->prefs[j]);
 				fprintf(fp, "\t%s", mi->name);
 			} else {
 				fprintf(fp, "\t-");
 			}
-			if (st->prefs_rank[j] > 0) {
-				fprintf(fp, "\t%d\t%d", st->prefs_cap[j], st->prefs_rank[j]);
+			if (mi && st->prefs_rank[j] > 0) {
+				fprintf(fp, "\t%d\t%d\t%d",
+					mi->mscmax, st->prefs_rank[j], mi->msclast);
 			} else {
-				fprintf(fp, "\t-\t-");
+				fprintf(fp, "\t-\t-\t-");
 			}
 		}
 		fprintf(fp, "\n");
