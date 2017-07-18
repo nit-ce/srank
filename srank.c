@@ -407,7 +407,7 @@ static void srank_rank(int noreq)
 			mi = sidx_datget(minors, st->prefs[j]);
 			if (!mi)			/* unknown minor */
 				continue;
-			for (k = 0; !noreq && k < mi->reqs_cnt; k++)
+			for (k = 0; k < mi->reqs_cnt; k++)
 				if (mi->reqs[k] == st->bsc)
 					break;
 			if (k == mi->reqs_cnt) {	/* prefix requirements */
@@ -421,7 +421,8 @@ static void srank_rank(int noreq)
 			if (k == mi->reqs_cnt) {	/* unmet requirement */
 				warn("unmet requirement; student <%s>, minor <%s>",
 					st->name, mi->name);
-				continue;
+				if (!noreq)
+					continue;
 			}
 			mi->msccur++;
 			st->prefs_rank[j] = mi->msccur;
