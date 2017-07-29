@@ -90,6 +90,8 @@ static char *sunify_map[][2] = {
 	{"_", NULL},
 	{" ", NULL},
 	{"*", NULL},
+	{"\"", NULL},
+	{"'", NULL},
 	{"؛", NULL},
 	{"،", NULL},
 	{"ء", NULL},
