@@ -450,16 +450,20 @@ static void srank_print(FILE *fp)
 }
 
 /* print student grades */
-static void srank_printfull(FILE *fp)
+static void srank_printfull(FILE *fp, int norej, int nohdr)
 {
 	int i, j;
-	fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
-		"معدل کارشناسی\tرشته‌ی قبولی\t"
-		"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
-		"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
-		"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
+	if (!nohdr) {
+		fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
+			"معدل کارشناسی\tرشته‌ی قبولی\t"
+			"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
+			"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
+			"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
+	}
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
+		if (st->mapped < 0 && norej)
+			continue;
 		fprintf(fp, "%s", st->name);
 		fprintf(fp, "\t%s\t%s", st->info1, st->info2);
 		fprintf(fp, "\t%s", st->bscuni_info);
@@ -504,6 +508,8 @@ int main(int argc, char *argv[])
 	FILE *ofp = NULL;
 	int full = 0;
 	int noreq = 0;
+	int norej = 0;
+	int nohdr = 0;
 	int i;
 	for (i = 1; i < argc && argv[i][0] == '-'; i++) {
 		switch (argv[i][1]) {
@@ -519,6 +525,12 @@ int main(int argc, char *argv[])
 		case 'f':
 			full = 1;
 			break;
+		case 'a':
+			norej = 1;
+			break;
+		case 's':
+			nohdr = 1;
+			break;
 		default:
 			printf("Usage: srank [options] <input >output\n\n");
 			printf("Options:\n");
@@ -526,6 +538,8 @@ int main(int argc, char *argv[])
 			printf("  -o path \t write to a file instead of standard output\n");
 			printf("  -n      \t do not verify requirements\n");
 			printf("  -f      \t print full information\n");
+			printf("  -a      \t print accepted students only (for -f)\n");
+			printf("  -s      \t print no header (for -f)\n");
 			return 1;
 		}
 	}
@@ -537,7 +551,7 @@ int main(int argc, char *argv[])
 	srank_scores();
 	srank_rank(noreq);
 	if (full)
-		srank_printfull(ofp ? ofp : stdout);
+		srank_printfull(ofp ? ofp : stdout, norej, nohdr);
 	else
 		srank_print(ofp ? ofp : stdout);
 	if (ifp)
