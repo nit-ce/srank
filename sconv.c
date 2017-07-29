@@ -86,6 +86,7 @@ static void conv_studs(FILE *fp)
 			snprintf(stud, sizeof(stud), "%s", cols[1]);
 			printf("student\t%s\n", stud);
 			printf("student_name\t%s\t%s\t%s\n", stud, cols[7], cols[6]);
+			printf("student_bsc\t%s\t%s\n", stud, cols[21]);
 			printf("student_bscuni\t%s\t%s\n", stud, cols[20]);
 			printf("student_bscgpa\t%s\t%s\n", stud, cols[27]);
 			printf("student_pref\t%s\t%s\n", stud, cols[5]);
