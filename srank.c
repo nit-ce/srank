@@ -262,11 +262,11 @@ static void srank_enrol(char *sname, char *mname)
 			mi->msccur++;
 			mi->msccnt++;
 		} else {
-			warn("unknown minor <%s>", mname);
+			warn("unknown minor\t%s", mname);
 		}
 	}
 	if (!st)
-		warn("unknown student <%s>", sname);
+		warn("unknown student\t%s", sname);
 }
 
 /* read input commands */
@@ -283,7 +283,7 @@ static void srank_input(FILE *fp)
 			if (sidx_uget(studs, cols[1]) < 0)
 				stud_register(cols[1]);
 			else
-				warn("student <%s> redefined", cols[1]);
+				warn("student redefined\t%s", cols[1]);
 		} else if (!strcmp("student_name", cmd) && cols[1]) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && cols[2])
@@ -291,19 +291,19 @@ static void srank_input(FILE *fp)
 			if (s && cols[3])
 				snprintf(s->info2, sizeof(s->info2), "%s", cols[3]);
 			if (!s)
-				warn("unknown student <%s>", cols[1]);
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("student_bsc", cmd) && cols[1]) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && cols[2])
 				s->bsc = sidx_uput(bscs, cols[2]);
 			if (!s)
-				warn("unknown student <%s>", cols[1]);
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("student_bscgpa", cmd) && cols[1]) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && cols[2])
 				s->bscgpa = hundredths(cols[2]);
 			if (!s)
-				warn("unknown student <%s>", cols[1]);
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("student_bscuni", cmd)) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && cols[2])
@@ -311,7 +311,7 @@ static void srank_input(FILE *fp)
 			if (s && cols[2])
 				s->bscuni = sidx_uget(univs, cols[2]);
 			if (!s)
-				warn("unknown student <%s>", cols[1]);
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("student_pref", cmd)) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && s->prefs_cnt < PCNT && cols[2]) {
@@ -319,39 +319,38 @@ static void srank_input(FILE *fp)
 				if (pref >= 0)
 					s->prefs[s->prefs_cnt++] = pref;
 				else
-					warn("unknown minor; student <%s>, minor <%s>",
-						cols[1], cols[2]);
+					warn("unknown preference\t%s\t%s", cols[1], cols[2]);
 			}
 			if (!s)
-				warn("unknown student <%s>", cols[1]);
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("university", cmd)) {
 			if (sidx_uget(univs, cols[1]) < 0)
 				univ_register(cols[1]);
 			else
-				warn("university <%s> redefined", cols[1]);
+				warn("university redefined\t%s", cols[1]);
 		} else if (!strcmp("university_grade", cmd)) {
 			struct univ *u = univ_find(cols[1]);
 			if (u && cols[2])
 				u->grade = hundredths(cols[2]);
 			if (!u)
-				warn("unknown university <%s>", cols[1]);
+				warn("unknown university\t%s", cols[1]);
 		} else if (!strcmp("minor", cmd)) {
 			if (sidx_uget(univs, cols[1]) < 0)
 				minor_register(cols[1]);
 			else
-				warn("minor <%s> redefined", cols[1]);
+				warn("minor redefined\t%s", cols[1]);
 		} else if (!strcmp("minor_msc", cmd)) {
 			struct minor *m = minor_find(cols[1]);
 			if (m && cols[2])
 				m->mscmax = atoi(cols[2]);
 			if (!m)
-				warn("unknown minor <%s>", cols[1]);
+				warn("unknown minor\t%s", cols[1]);
 		} else if (!strcmp("minor_req", cmd)) {
 			struct minor *m = minor_find(cols[1]);
 			if (m && m->reqs_cnt < RCNT && cols[2])
 				m->reqs[m->reqs_cnt++] = sidx_uput(bscs, cols[2]);
 			if (!m)
-				warn("unknown minor <%s>", cols[1]);
+				warn("unknown minor\t%s", cols[1]);
 		} else if (!strcmp("enrol", cmd)) {
 			if (cols[1] && cols[2])
 				srank_enrol(cols[1], cols[2]);
@@ -421,7 +420,7 @@ static void srank_rank(int noreq)
 				}
 			}
 			if (k == mi->reqs_cnt) {	/* unmet requirement */
-				warn("unmet requirement; student <%s>, minor <%s>",
+				warn("unmet requirement\t%s\t%s",
 					st->name, mi->name);
 				if (!noreq)
 					continue;
