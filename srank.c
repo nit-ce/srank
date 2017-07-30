@@ -32,6 +32,7 @@ struct stud {
 	char info1[NLEN];	/* student first name */
 	char info2[NLEN];	/* student last name */
 	char bscuni_info[NLEN];	/* BSc university name */
+	char bsc_info[NLEN];	/* BSc major name */
 	int bsc;		/* BSc major name */
 	int bscgpa;		/* BSc GPA (0-2000) */
 	int bscuni;		/* BSc university identifier */
@@ -295,6 +296,8 @@ static void srank_input(FILE *fp)
 		} else if (!strcmp("student_bsc", cmd) && cols[1]) {
 			struct stud *s = stud_find(cols[1]);
 			if (s && cols[2])
+				snprintf(s->bsc_info, sizeof(s->bsc_info), "%s", cols[2]);
+			if (s && cols[2])
 				s->bsc = sidx_uput(bscs, cols[2]);
 			if (!s)
 				warn("unknown student\t%s", cols[1]);
@@ -456,7 +459,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 	int i, j;
 	if (!nohdr) {
 		fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
-			"معدل کارشناسی\tامتیاز کل\tرشته‌ی قبولی\t"
+			"معدل کارشناسی\tامتیاز کل\tرشته‌ی کارشناسی\tرشته‌ی قبولی\t"
 			"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
 			"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
 			"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
@@ -471,6 +474,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 		fprintf(fp, "\t%d.%02d", st->score_univ / 100, st->score_univ % 100);
 		fprintf(fp, "\t%d.%02d", st->bscgpa / 100, st->bscgpa % 100);
 		fprintf(fp, "\t%d.%02d", st->score / 100, st->score % 100);
+		fprintf(fp, "\t%s", st->bsc_info);
 		if (st->mapped >= 0) {
 			struct minor *mi = sidx_datget(minors, st->mapped);
 			fprintf(fp, "\t%s", mi->name);
