@@ -423,8 +423,7 @@ static void srank_rank(int noreq)
 				}
 			}
 			if (k == mi->reqs_cnt) {	/* unmet requirement */
-				warn("unmet requirement\t%s\t%s",
-					st->name, mi->name);
+				warn("unmet requirement\t%s\t%d", st->name, j + 1);
 				if (!noreq)
 					continue;
 			}
