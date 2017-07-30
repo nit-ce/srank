@@ -457,7 +457,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 	int i, j;
 	if (!nohdr) {
 		fprintf(fp, "شناسه\tنام\tنام خانوادگی\tدانشگاه کارشناسی\tامتیاز دانشگاه\t"
-			"معدل کارشناسی\tرشته‌ی قبولی\t"
+			"معدل کارشناسی\tامتیاز کل\tرشته‌ی قبولی\t"
 			"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
 			"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
 			"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
@@ -471,11 +471,12 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 		fprintf(fp, "\t%s", st->bscuni_info);
 		fprintf(fp, "\t%d.%02d", st->score_univ / 100, st->score_univ % 100);
 		fprintf(fp, "\t%d.%02d", st->bscgpa / 100, st->bscgpa % 100);
+		fprintf(fp, "\t%d.%02d", st->score / 100, st->score % 100);
 		if (st->mapped >= 0) {
 			struct minor *mi = sidx_datget(minors, st->mapped);
 			fprintf(fp, "\t%s", mi->name);
 		} else {
-			fprintf(fp, "\t");
+			fprintf(fp, "\t-");
 		}
 		for (j = 0; j < PCNT; j++) {
 			struct minor *mi = NULL;
