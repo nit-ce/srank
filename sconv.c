@@ -75,32 +75,53 @@ static void conv_minors(FILE *fp)
 	}
 }
 
+static int hdrs_find(char **hdrs, int hdrs_n, char *hdr, int def)
+{
+	int i;
+	for (i = 0; i < hdrs_n; i++)
+		if (!strcmp(hdr, hdrs[i]))
+			return i;
+	fprintf(stderr, "bad header!\n");
+	exit(1);
+}
+
 /* convert student data */
-static void conv_studs(FILE *fp)
+static void conv_studs(FILE *fp, int group)
 {
 	char *cols[128];
 	char stud[128] = "";
+	char *hdrs[128];
 	int n;
+	int hdrs_n = onemoreline(fp, hdrs, LEN(hdrs));		/* the headers */
+	int h_id = hdrs_find(hdrs, hdrs_n, "\"شماره پرونده داوطلب\"", 1);
+	int h_name1 = hdrs_find(hdrs, hdrs_n, "\"نام\"", 7);
+	int h_name2 = hdrs_find(hdrs, hdrs_n, "\"نام خانوادگي\"", 6);
+	int h_bsc = hdrs_find(hdrs, hdrs_n, "\"رشته تحصيلي كارشناسي\"", 21);
+	int h_uni = hdrs_find(hdrs, hdrs_n, "\"دانشگاه محل اخذ مدرك كارشناسي\"", 20);
+	int h_gpa = hdrs_find(hdrs, hdrs_n, "\"معدل تا پايان نيمسال ششم\"", 27);
+	int h_pref = hdrs_find(hdrs, hdrs_n, "\"گرايش (هاي) انتخابي\"", 5);
 	while ((n = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		if (cols[0] && isdigit((unsigned char) cols[0][0])) {
-			snprintf(stud, sizeof(stud), "%s", cols[1]);
+			snprintf(stud, sizeof(stud), "%s", cols[h_id]);
 			printf("student\t%s\n", stud);
-			printf("student_name\t%s\t%s\t%s\n", stud, cols[7], cols[6]);
-			printf("student_bsc\t%s\t%s\n", stud, cols[21]);
-			printf("student_bscuni\t%s\t%s\n", stud, cols[20]);
-			printf("student_bscgpa\t%s\t%s\n", stud, cols[27]);
-			printf("student_pref\t%s\t%s\n", stud, cols[5]);
+			printf("student_name\t%s\t%s\t%s\n", stud, cols[h_name1], cols[h_name2]);
+			printf("student_bsc\t%s\t%s\n", stud, cols[h_bsc]);
+			printf("student_bscuni\t%s\t%s\n", stud, cols[h_uni]);
+			printf("student_bscgpa\t%s\t%s\n", stud, cols[h_gpa]);
+			printf("student_pref\t%s\t%s\n", stud, cols[h_pref]);
+			printf("student_grp\t%s\t%d\n", stud, group);
 		}
-		if (stud[0] && cols[0] && cols[5] && !cols[0][0] && cols[5][0])
-			printf("student_pref\t%s\t%s\n", stud, cols[5]);
+		if (stud[0] && cols[0] && cols[h_pref] && !cols[0][0] && cols[h_pref][0])
+			printf("student_pref\t%s\t%s\n", stud, cols[h_pref]);
 	}
 }
 
 int main(int argc, char *argv[])
 {
 	FILE *fp;
+	int i;
 	if (argc < 3) {
-		fprintf(stderr, "Usage: sconv universities minors students\n");
+		fprintf(stderr, "Usage: sconv universities minors students [students2]\n");
 		return 1;
 	}
 	fp = fopen(argv[1], "r");
@@ -117,12 +138,14 @@ int main(int argc, char *argv[])
 	}
 	conv_minors(fp);
 	fclose(fp);
-	fp = fopen(argv[3], "r");
-	if (!fp) {
-		fprintf(stderr, "sconv: failed to open <%s>\n", argv[3]);
-		return 1;
+	for (i = 0; 3 + i < argc; i++) {
+		fp = fopen(argv[3 + i], "r");
+		if (!fp) {
+			fprintf(stderr, "sconv: failed to open <%s>\n", argv[3]);
+			return 1;
+		}
+		conv_studs(fp, i);
+		fclose(fp);
 	}
-	conv_studs(fp);
-	fclose(fp);
 	return 0;
 }
