@@ -39,6 +39,7 @@ struct stud {
 	int prefs[PCNT];	/* student preferences */
 	int prefs_rank[PCNT];	/* rank per preference */
 	int prefs_cnt;		/* number of items in prefs[] */
+	int grp;		/* student group */
 	int score_univ;
 	int score;
 	int mapped;
@@ -326,6 +327,12 @@ static void srank_input(FILE *fp)
 			}
 			if (!s)
 				warn("unknown student\t%s", cols[1]);
+		} else if (!strcmp("student_grp", cmd)) {
+			struct stud *s = stud_find(cols[1]);
+			if (s && cols[2])
+				s->grp = atoi(cols[2]);
+			if (!s)
+				warn("unknown student\t%s", cols[1]);
 		} else if (!strcmp("university", cmd)) {
 			if (sidx_uget(univs, cols[1]) < 0)
 				univ_register(cols[1]);
@@ -392,7 +399,7 @@ static int prefix(char *pre, char *str)
 }
 
 /* rank students; the main algorithm */
-static void srank_rank(int noreq)
+static void srank_rank(int noreq, int grp)
 {
 	int n = sidx_len(studs);
 	int *sorted = malloc(n * sizeof(sorted[0]));
@@ -402,7 +409,7 @@ static void srank_rank(int noreq)
 	qsort(sorted, n, sizeof(sorted[0]), (void *) studcmp);
 	for (i = 0; i < n; i++) {
 		struct stud *st = sidx_datget(studs, sorted[i]);
-		if (st->mapped >= 0)
+		if (st->grp != grp || st->mapped >= 0)
 			continue;
 		for (j = 0; j < st->prefs_cnt; j++) {
 			struct minor *mi;
@@ -461,7 +468,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 			"معدل کارشناسی\tامتیاز کل\tرشته‌ی کارشناسی\tرشته‌ی قبولی\t"
 			"اولویت 1\tظرفیت 1\tرتبه 1\tآخرین رتبه‌ی قبولی 1\t"
 			"اولویت 2\tظرفیت 2\tرتبه 2\tآخرین رتبه‌ی قبولی 2\t"
-			"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\n");
+			"اولویت 3\tظرفیت 3\tرتبه 3\tآخرین رتبه‌ی قبولی 3\tگروه\n");
 	}
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
@@ -495,6 +502,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 				fprintf(fp, "\t-\t-\t-");
 			}
 		}
+		fprintf(fp, "\t%d", st->grp);
 		fprintf(fp, "\n");
 	}
 }
@@ -554,7 +562,8 @@ int main(int argc, char *argv[])
 	bscs = sidx_make();
 	srank_input(ifp ? ifp : stdin);
 	srank_scores();
-	srank_rank(noreq);
+	srank_rank(noreq, 0);
+	srank_rank(noreq, 1);
 	if (full)
 		srank_printfull(ofp ? ofp : stdout, norej, nohdr);
 	else

@@ -1,0 +1,28 @@
+# groups; group 1 being accepted
+university	u1
+university_grade	u1	3
+
+minor	m1
+minor_msc	m1	2
+minor_req	m1	r1
+
+student	A
+student_bsc	A	r1
+student_bscgpa	A	20
+student_bscuni	A	u1
+student_pref	A	m1
+student_grp	A	0
+
+student	B
+student_bsc	B	r1
+student_bscgpa	B	17
+student_bscuni	B	u1
+student_pref	B	m1
+student_grp	B	1
+
+student	C
+student_bsc	C	r1
+student_bscgpa	C	18
+student_bscuni	C	u1
+student_pref	C	m1
+student_grp	C	1
