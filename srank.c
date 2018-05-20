@@ -61,7 +61,7 @@ static int hundredths(char *s)
 	int f = 0;
 	for (; isdigit((unsigned char) *s); s++)
 		n = n * 10 + *s - '0';
-	if (s[0] == '.' && isdigit((unsigned char) s[1])) {
+	if ((s[0] == '.' || s[0] == '/') && isdigit((unsigned char) s[1])) {
 		f = (s[1] - '0') * 10;
 		if (isdigit((unsigned char) s[2]))
 			f += s[2] - '0';
@@ -220,26 +220,40 @@ static struct minor *minor_find(char *name)
 /* read a line and split it at tab characters */
 static int onemoreline(FILE *fp, char **cols, int sz)
 {
-	int c = fgetc(fp);
 	int ncols = 0;
+	int c = fgetc(fp);
+	int quote = 0;
 	struct sbuf *sb;
 	memset(cols, 0, sz * sizeof(cols[0]));
 	if (c == EOF)
 		return -1;
 	sb = sbuf_make();
-	while (c != '\n' && c != EOF) {
-		if (c != '\t') {
-			sbuf_chr(sb, c);
-		} else {
+	while (c != EOF) {
+		if (!quote && c == '\n')
+			break;
+		if ((quote && c == '"') || (!quote && c == '\t')) {
+			quote = 0;
 			if (ncols + 1 >= sz)
 				break;
 			cols[ncols++] = sbuf_done(sb);
 			sb = sbuf_make();
+			if (c == '"')
+				c = fgetc(fp);
+			if (c == '\n')
+				ungetc(c, fp);
+		} else {
+			if (c == '\n')
+				sbuf_chr(sb, ',');
+			else if (c == '\t')
+				sbuf_chr(sb, ' ');
+			else if (c == '"')
+				quote = 1;
+			else if (c != '\r')
+				sbuf_chr(sb, c);
 		}
 		c = fgetc(fp);
 	}
 	cols[ncols++] = sbuf_done(sb);
-	lineno++;
 	return ncols;
 }
 
@@ -430,7 +444,7 @@ static void srank_rank(int noreq, int grp)
 				}
 			}
 			if (k == mi->reqs_cnt) {	/* unmet requirement */
-				warn("unmet requirement\t%s\t%d", st->name, j + 1);
+				warn("unmet requirement\t\"%s\"\t%d", st->name, j + 1);
 				if (!noreq)
 					continue;
 			}
@@ -474,16 +488,16 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 		struct stud *st = sidx_datget(studs, i);
 		if (st->mapped < 0 && norej)
 			continue;
-		fprintf(fp, "%s", st->name);
-		fprintf(fp, "\t%s\t%s", st->info1, st->info2);
-		fprintf(fp, "\t%s", st->bscuni_info);
+		fprintf(fp, "\"%s\"", st->name);
+		fprintf(fp, "\t\"%s\"\t\"%s\"", st->info1, st->info2);
+		fprintf(fp, "\t\"%s\"", st->bscuni_info);
 		fprintf(fp, "\t%d.%02d", st->score_univ / 100, st->score_univ % 100);
 		fprintf(fp, "\t%d.%02d", st->bscgpa / 100, st->bscgpa % 100);
 		fprintf(fp, "\t%d.%02d", st->score / 100, st->score % 100);
-		fprintf(fp, "\t%s", st->bsc_info);
+		fprintf(fp, "\t\"%s\"", st->bsc_info);
 		if (st->mapped >= 0) {
 			struct minor *mi = sidx_datget(minors, st->mapped);
-			fprintf(fp, "\t%s", mi->name);
+			fprintf(fp, "\t\"%s\"", mi->name);
 		} else {
 			fprintf(fp, "\t-");
 		}
@@ -491,7 +505,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 			struct minor *mi = NULL;
 			if (j < st->prefs_cnt && st->prefs[j] >= 0) {
 				mi = sidx_datget(minors, st->prefs[j]);
-				fprintf(fp, "\t%s", mi->name);
+				fprintf(fp, "\t\"%s\"", mi->name);
 			} else {
 				fprintf(fp, "\t-");
 			}

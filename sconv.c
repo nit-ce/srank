@@ -10,21 +10,36 @@
 /* read a line and split it at tab characters */
 static int onemoreline(FILE *fp, char **cols, int sz)
 {
-	int c = fgetc(fp);
 	int ncols = 0;
+	int c = fgetc(fp);
+	int quote = 0;
 	struct sbuf *sb;
 	memset(cols, 0, sz * sizeof(cols[0]));
 	if (c == EOF)
 		return -1;
 	sb = sbuf_make();
-	while (c != '\n' && c != EOF) {
-		if (c != '\t') {
-			sbuf_chr(sb, c);
-		} else {
+	while (c != EOF) {
+		if (!quote && c == '\n')
+			break;
+		if ((quote && c == '"') || (!quote && c == '\t')) {
+			quote = 0;
 			if (ncols + 1 >= sz)
 				break;
 			cols[ncols++] = sbuf_done(sb);
 			sb = sbuf_make();
+			if (c == '"')
+				c = fgetc(fp);
+			if (c == '\n')
+				ungetc(c, fp);
+		} else {
+			if (c == '\n')
+				sbuf_chr(sb, ',');
+			else if (c == '\t')
+				sbuf_chr(sb, ' ');
+			else if (c == '"')
+				quote = 1;
+			else if (c != '\r')
+				sbuf_chr(sb, c);
 		}
 		c = fgetc(fp);
 	}
@@ -93,13 +108,13 @@ static void conv_studs(FILE *fp, int group)
 	char *hdrs[128];
 	int n;
 	int hdrs_n = onemoreline(fp, hdrs, LEN(hdrs));		/* the headers */
-	int h_id = hdrs_find(hdrs, hdrs_n, "\"شماره پرونده داوطلب\"", 1);
-	int h_name1 = hdrs_find(hdrs, hdrs_n, "\"نام\"", 7);
-	int h_name2 = hdrs_find(hdrs, hdrs_n, "\"نام خانوادگي\"", 6);
-	int h_bsc = hdrs_find(hdrs, hdrs_n, "\"رشته تحصيلي كارشناسي\"", 21);
-	int h_uni = hdrs_find(hdrs, hdrs_n, "\"دانشگاه محل اخذ مدرك كارشناسي\"", 20);
-	int h_gpa = hdrs_find(hdrs, hdrs_n, "\"معدل تا پايان نيمسال ششم\"", 27);
-	int h_pref = hdrs_find(hdrs, hdrs_n, "\"گرايش (هاي) انتخابي\"", 5);
+	int h_id = hdrs_find(hdrs, hdrs_n, "شماره پرونده داوطلب", 1);
+	int h_name1 = hdrs_find(hdrs, hdrs_n, "نام", 7);
+	int h_name2 = hdrs_find(hdrs, hdrs_n, "نام خانوادگي", 6);
+	int h_bsc = hdrs_find(hdrs, hdrs_n, "رشته تحصيلي كارشناسي", 21);
+	int h_uni = hdrs_find(hdrs, hdrs_n, "دانشگاه محل اخذ مدرك كارشناسي", 20);
+	int h_gpa = hdrs_find(hdrs, hdrs_n, "معدل تا پايان نيمسال ششم", 27);
+	int h_pref = hdrs_find(hdrs, hdrs_n, "گرايش (هاي) انتخابي", 5);
 	while ((n = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		if (cols[0] && isdigit((unsigned char) cols[0][0])) {
 			snprintf(stud, sizeof(stud), "%s", cols[h_id]);
