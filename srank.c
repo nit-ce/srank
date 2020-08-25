@@ -20,10 +20,10 @@ struct univ {
 };
 struct minor {
 	char name[NLEN];	/* minor name */
-	int mscmax;		/* maximum MSc admissions */
-	int msccnt;		/* number of accepted students */
-	int msccur;		/* number of students applied for this minor */
-	int msclast;		/* rank of the the last accepted student */
+	int mscmax[2];		/* maximum MSc admissions */
+	int msccnt[2];		/* number of accepted students */
+	int msccur[2];		/* number of students applied for this minor */
+	int msclast[2];		/* rank of the the last accepted student */
 	int reqs[RCNT];		/* required majors */
 	int reqs_cnt;		/* the number of items in reqs[] */
 };
@@ -40,6 +40,7 @@ struct stud {
 	int prefs_rank[PCNT];	/* rank per preference */
 	int prefs_cnt;		/* number of items in prefs[] */
 	int grp;		/* student group */
+	int ours;
 	int score_univ;
 	int score;
 	int mapped;
@@ -275,8 +276,8 @@ static void srank_enrol(char *sname, char *mname)
 		if (midx >= 0) {
 			struct minor *mi = sidx_datget(minors, midx);
 			st->mapped = midx;
-			mi->msccur++;
-			mi->msccnt++;
+			mi->msccur[st->ours]++;
+			mi->msccnt[st->ours]++;
 		} else {
 			warn("unknown minor\t%s", mname);
 		}
@@ -290,6 +291,7 @@ static void srank_input(FILE *fp)
 {
 	char *cols[64];
 	int ncols;
+	int us;
 	int i;
 	while ((ncols = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		char *cmd = cols[0];
@@ -365,8 +367,11 @@ static void srank_input(FILE *fp)
 				warn("minor redefined\t%s", cols[1]);
 		} else if (!strcmp("minor_msc", cmd)) {
 			struct minor *m = minor_find(cols[1]);
-			if (m && cols[2])
-				m->mscmax = atoi(cols[2]);
+			if (m && cols[2]) {
+				int cap = atoi(cols[2]);
+				m->mscmax[0] = cap / 3;
+				m->mscmax[1] = cap - m->mscmax[0];
+			}
 			if (!m)
 				warn("unknown minor\t%s", cols[1]);
 		} else if (!strcmp("minor_req", cmd)) {
@@ -383,6 +388,17 @@ static void srank_input(FILE *fp)
 		}
 		for (i = 0; i < ncols; i++)
 			free(cols[i]);
+	}
+	/* identifying our students */
+	us = sidx_uget(univs, "دانشگاه صنعتی نوشیروانی بابل");
+	if (us < 0) {
+		printf("Our university not registered!\n");
+		exit(1);
+	}
+	for (i = 0; i < sidx_len(studs); i++) {
+		struct stud *st = sidx_datget(studs, i);
+		if (st->bscuni == us)
+			st->ours = 1;
 	}
 }
 
@@ -423,6 +439,7 @@ static void srank_rank(int noreq, int grp)
 	qsort(sorted, n, sizeof(sorted[0]), (void *) studcmp);
 	for (i = 0; i < n; i++) {
 		struct stud *st = sidx_datget(studs, sorted[i]);
+		int ours = st->ours;			/* our students */
 		if (st->grp != grp || st->mapped >= 0)
 			continue;
 		for (j = 0; j < st->prefs_cnt; j++) {
@@ -448,11 +465,11 @@ static void srank_rank(int noreq, int grp)
 				if (!noreq)
 					continue;
 			}
-			mi->msccur++;
-			st->prefs_rank[j] = mi->msccur;
-			if (st->mapped < 0 && mi->msccnt < mi->mscmax) {	/* accepted */
-				mi->msccnt++;
-				mi->msclast = mi->msccur;
+			mi->msccur[ours]++;
+			st->prefs_rank[j] = mi->msccur[ours];
+			if (st->mapped < 0 && mi->msccnt[ours] < mi->mscmax[ours]) {	/* accepted */
+				mi->msccnt[ours]++;
+				mi->msclast[ours] = mi->msccur[ours];
 				st->mapped = st->prefs[j];
 			}
 		}
@@ -486,6 +503,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 	}
 	for (i = 0; i < sidx_len(studs); i++) {
 		struct stud *st = sidx_datget(studs, i);
+		int ours = st->ours;
 		if (st->mapped < 0 && norej)
 			continue;
 		fprintf(fp, "\"%s\"", st->name);
@@ -511,7 +529,7 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 			}
 			if (mi && st->prefs_rank[j] > 0) {
 				fprintf(fp, "\t%d\t%d\t%d",
-					mi->mscmax, st->prefs_rank[j], mi->msclast);
+					mi->mscmax[ours], st->prefs_rank[j], mi->msclast[ours]);
 			} else {
 				fprintf(fp, "\t-\t-\t-");
 			}
