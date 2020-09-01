@@ -369,7 +369,7 @@ static void srank_input(FILE *fp)
 			struct minor *m = minor_find(cols[1]);
 			if (m && cols[2]) {
 				int cap = atoi(cols[2]);
-				m->mscmax[0] = cap / 3;
+				m->mscmax[0] = cap / 3 + (cap % 3 == 2);
 				m->mscmax[1] = cap - m->mscmax[0];
 			}
 			if (!m)
@@ -539,6 +539,18 @@ static void srank_printfull(FILE *fp, int norej, int nohdr)
 	}
 }
 
+static void srank_printminors(FILE* fp)
+{
+	int i;
+	for (i = 0; i < sidx_len(minors); i++) {
+		struct minor *mi = sidx_datget(minors, i);
+		fprintf(fp, "\"%s\"\t%d\t%d\n",
+			mi->name,
+			mi->mscmax[0] + mi->mscmax[1],
+			mi->msccnt[0] + mi->msccnt[1]);
+	}
+}
+
 static void sidx_done(struct sidx *sidx)
 {
 	int i;
@@ -555,6 +567,7 @@ int main(int argc, char *argv[])
 	int noreq = 0;
 	int norej = 0;
 	int nohdr = 0;
+	int mins = 0;
 	int i;
 	for (i = 1; i < argc && argv[i][0] == '-'; i++) {
 		switch (argv[i][1]) {
@@ -576,6 +589,9 @@ int main(int argc, char *argv[])
 		case 's':
 			nohdr = 1;
 			break;
+		case 'm':
+			mins = 1;
+			break;
 		default:
 			printf("Usage: srank [options] <input >output\n\n");
 			printf("Options:\n");
@@ -583,6 +599,7 @@ int main(int argc, char *argv[])
 			printf("  -o path \t write to a file instead of standard output\n");
 			printf("  -n      \t do not verify requirements\n");
 			printf("  -f      \t print full information\n");
+			printf("  -m      \t print minor capacities\n");
 			printf("  -a      \t print accepted students only (for -f)\n");
 			printf("  -s      \t print no header (for -f)\n");
 			return 1;
@@ -598,6 +615,8 @@ int main(int argc, char *argv[])
 	srank_rank(noreq, 1);
 	if (full)
 		srank_printfull(ofp ? ofp : stdout, norej, nohdr);
+	else if (mins)
+		srank_printminors(ofp ? ofp : stdout);
 	else
 		srank_print(ofp ? ofp : stdout);
 	if (ifp)
