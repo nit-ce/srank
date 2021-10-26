@@ -96,7 +96,7 @@ static int hdrs_find(char **hdrs, int hdrs_n, char *hdr, int def)
 	for (i = 0; i < hdrs_n; i++)
 		if (!strcmp(hdr, hdrs[i]))
 			return i;
-	fprintf(stderr, "bad header!\n");
+	fprintf(stderr, "bad header <%s>!\n", hdr);
 	exit(1);
 }
 
@@ -110,11 +110,11 @@ static void conv_studs(FILE *fp, int group)
 	int hdrs_n = onemoreline(fp, hdrs, LEN(hdrs));		/* the headers */
 	int h_id = hdrs_find(hdrs, hdrs_n, "شماره پرونده داوطلب", 1);
 	int h_name1 = hdrs_find(hdrs, hdrs_n, "نام", 7);
-	int h_name2 = hdrs_find(hdrs, hdrs_n, "نام خانوادگي", 6);
-	int h_bsc = hdrs_find(hdrs, hdrs_n, "رشته تحصيلي كارشناسي", 21);
-	int h_uni = hdrs_find(hdrs, hdrs_n, "دانشگاه محل اخذ مدرك كارشناسي", 20);
-	int h_gpa = hdrs_find(hdrs, hdrs_n, "معدل تا پايان نيمسال ششم", 27);
-	int h_pref = hdrs_find(hdrs, hdrs_n, "گرايش (هاي) انتخابي", 5);
+	int h_name2 = hdrs_find(hdrs, hdrs_n, "نام خانوادگی", 6);
+	int h_bsc = hdrs_find(hdrs, hdrs_n, "رشته تحصیلی کارشناسی", 21);
+	int h_uni = hdrs_find(hdrs, hdrs_n, "دانشگاه محل اخذ مدرک کارشناسی", 20);
+	int h_gpa = hdrs_find(hdrs, hdrs_n, "معدل تا پایان نیمسال ششم", 27);
+	int h_pref = hdrs_find(hdrs, hdrs_n, "گرایش (های) انتخابی", 5);
 	while ((n = onemoreline(fp, cols, LEN(cols))) >= 0) {
 		if (cols[0] && isdigit((unsigned char) cols[0][0])) {
 			snprintf(stud, sizeof(stud), "%s", cols[h_id]);
