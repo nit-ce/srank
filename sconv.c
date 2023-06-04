@@ -123,7 +123,8 @@ static void conv_studs(FILE *fp, int group)
 			printf("student_bsc\t%s\t%s\n", stud, cols[h_bsc]);
 			printf("student_bscuni\t%s\t%s\n", stud, cols[h_uni]);
 			printf("student_bscgpa\t%s\t%s\n", stud, cols[h_gpa]);
-			printf("student_pref\t%s\t%s\n", stud, cols[h_pref]);
+			if (cols[h_pref][0])
+				printf("student_pref\t%s\t%s\n", stud, cols[h_pref]);
 			printf("student_grp\t%s\t%d\n", stud, group);
 		}
 		if (stud[0] && cols[0] && cols[h_pref] && !cols[0][0] && cols[h_pref][0])
